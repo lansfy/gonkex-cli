@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/lansfy/gonkex/mocks"
 	"github.com/lansfy/gonkex/models"
+	"github.com/lansfy/gonkex/output"
 	"github.com/lansfy/gonkex/output/allure"
 	"github.com/lansfy/gonkex/output/terminal"
 	"github.com/lansfy/gonkex/runner"
@@ -22,12 +26,12 @@ import (
 	"github.com/lansfy/gonkex/testloader/yaml_file"
 	"github.com/lansfy/gonkex/variables"
 
+	"github.com/aerospike/aerospike-client-go/v5"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/shlex"
+	_ "github.com/lib/pq"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
-	"github.com/aerospike/aerospike-client-go/v5"
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -40,6 +44,12 @@ type config struct {
 	DbType           string
 	DbDsn            string
 
+	Mocks       string
+	MocksPrefix string
+
+	PreTestCmd  string
+	PreTestWait string
+
 	Allure  bool
 	Verbose bool
 }
@@ -47,9 +57,62 @@ type config struct {
 func main() {
 	err := runCli()
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		_, _ = fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func createMocks(cfg *config) (*mocks.Mocks, error) {
+	if cfg.Mocks == "" {
+		return nil, nil
+	}
+
+	serviceNames := strings.Split(cfg.Mocks, ",")
+	m := mocks.NewNop(serviceNames...)
+	err := m.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.RegisterEnvironmentVariables(cfg.MocksPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func runPreTestCommand(cfg *config) (*exec.Cmd, error) {
+	if cfg.PreTestCmd == "" {
+		return nil, nil
+	}
+
+	args, err := shlex.Split(cfg.PreTestCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
+}
+
+func runPreTestWait(cfg *config) error {
+	if cfg.PreTestWait == "" {
+		return nil
+	}
+
+	delay, err := time.ParseDuration(cfg.PreTestWait)
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(delay)
+	return nil
 }
 
 func runCli() error {
@@ -69,6 +132,20 @@ func runCli() error {
 		return err
 	}
 
+	m, err := createMocks(cfg)
+	if err != nil {
+		return err
+	}
+
+	defer m.Shutdown()
+
+	if cfg.EnvFile != "" {
+		err = runner.RegisterEnvironmentVariables(cfg.EnvFile, false)
+		if err != nil {
+			return err
+		}
+	}
+
 	testsRunner := runner.New(
 		yaml_file.NewLoader(cfg.TestsLocation),
 		&runner.RunnerOpts{
@@ -76,6 +153,8 @@ func runCli() error {
 			Variables:    variables.New(),
 			HTTPProxyURL: proxyURL,
 			DB:           fixtureStorage,
+			Mocks:        m,
+			MocksLoader:  mocks.NewYamlLoader(nil),
 		},
 	)
 
@@ -93,6 +172,22 @@ func runCli() error {
 		allureOutput := allure.NewOutput("Gonkex", "./allure-results")
 		testsRunner.AddOutput(allureOutput)
 		defer allureOutput.Finalize()
+	}
+
+	cmd, err := runPreTestCommand(cfg)
+	if err != nil {
+		return err
+	}
+
+	err = runPreTestWait(cfg)
+	if err != nil {
+		return err
+	}
+
+	if cmd != nil {
+		defer func() {
+			_ = cmd.Process.Kill()
+		}()
 	}
 
 	err = testsRunner.Run()
@@ -184,12 +279,6 @@ func validateConfig(cfg *config) error {
 	if cfg.TestsLocation == "" {
 		return errors.New("no tests location provided")
 	}
-
-	if cfg.EnvFile != "" {
-		if err := godotenv.Load(cfg.EnvFile); err != nil {
-			return fmt.Errorf("can't load .env file: %w", err)
-		}
-	}
 	return nil
 }
 
@@ -202,8 +291,14 @@ func getConfig() *config {
 	flag.StringVar(&cfg.FixturesLocation, "fixtures", "", "Path to fixtures directory")
 	flag.StringVar(&cfg.DbType, "db-type", "", "Type of database/storage (available options: postgres, mysql, sqlite, aerospike, redis)")
 	flag.StringVar(&cfg.DbDsn, "db-dsn", "", "DSN for the fixtures database (WARNING: tables mentioned in fixtures will be truncated!)")
+	flag.StringVar(&cfg.Mocks, "mocks", "", "comma separated list of registered mocks")
+	flag.StringVar(&cfg.MocksPrefix, "mocks-prefix", "GONKEX_MOCK_", "use specified prefix when register environment variables")
+
+	flag.StringVar(&cfg.PreTestCmd, "pre-test-cmd", "", "program to run before start the tests")
+	flag.StringVar(&cfg.PreTestWait, "pre-test-wait", "", "delay before start the tests")
+
 	flag.BoolVar(&cfg.Verbose, "v", false, "Verbose output")
-	flag.BoolVar(&cfg.Allure, "allure", true, "Make Allure report")
+	flag.BoolVar(&cfg.Allure, "allure", false, "Make Allure report")
 
 	flag.Parse()
 
@@ -222,6 +317,8 @@ func proxyURLFromEnv() (*url.URL, error) {
 
 	return nil, nil
 }
+
+var _ output.ExtendedOutputInterface = (*testCounter)(nil)
 
 type testCounter struct {
 	total, failed, skipped, broken int
@@ -262,7 +359,7 @@ func (h *testCounter) Process(_ models.TestInterface, result *models.Result) err
 }
 
 func (h *testCounter) ShowResult() {
-	fmt.Printf("\n\nsuccess %d, failed %d, skipped %d, broken %d, total %d\n",
+	_, _ = fmt.Printf("\n\nsuccess %d, failed %d, skipped %d, broken %d, total %d\n",
 		h.total-(h.broken+h.failed+h.skipped),
 		h.failed,
 		h.skipped,
@@ -273,6 +370,6 @@ func (h *testCounter) ShowResult() {
 
 func (h *testCounter) print(c string) {
 	if h.showOutput {
-		fmt.Printf("%s", c)
+		_, _ = fmt.Printf("%s", c)
 	}
 }
