@@ -2,11 +2,13 @@
 \.idea/
 \.vscode/
 \pkg/
-gonkex
+gonkex-cli
+gonkex-cli.exe
 _vendor*
 Gopkg.lock
 tmpfile*
 /allure-results
+release-assets/
 .DS_Store
 
 # debug
