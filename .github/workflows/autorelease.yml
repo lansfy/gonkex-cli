@@ -87,6 +87,8 @@ jobs:
 
       - name: Upload Windows Binary
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./release-assets/windows-latest-binary/gonkex-cli.exe
@@ -95,6 +97,8 @@ jobs:
 
       - name: Upload Linux Binary
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./release-assets/ubuntu-latest-binary/gonkex-cli
