@@ -1,3 +1,15 @@
+# v0.0.2 (Fri Mar 14 2025)
+
+#### 🐛 Bug Fix
+
+- fix: fix releaser upload [#11](https://github.com/lansfy/gonkex-cli/pull/11) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.1 (Fri Mar 14 2025)
 
 #### 🐛 Bug Fix
