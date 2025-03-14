@@ -2,7 +2,8 @@
 \.idea/
 \.vscode/
 \pkg/
-gonkex
+gonkex-cli
+gonkex-cli.exe
 _vendor*
 Gopkg.lock
 tmpfile*
