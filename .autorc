@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    "git-tag",
+    "released"
+  ],
+  "owner": "lansfy",
+  "repo": "gonkex",
+  "name": "autorelease",
+  "email": "autorelease@lansfy.noreply"
+}
