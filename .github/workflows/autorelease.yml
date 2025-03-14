@@ -9,9 +9,45 @@ permissions:
   contents: write
 
 jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'  # adjust your Go version
+
+      - name: Build Binary
+        run: |
+          mkdir -p dist
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            go build -o dist/gonkex-cli.exe .
+          else
+            go build -o dist/gonkex-cli .
+          fi
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-binary
+          path: dist/gonkex-cli*
+
   release:
     runs-on: ubuntu-latest
+    needs: build
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -24,8 +60,43 @@ jobs:
           gunzip ~/auto.gz
           chmod a+x ~/auto
 
+      - name: Download built binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-assets
+
+      - name: List downloaded files
+        run: ls -R ./release-assets
+
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ~/auto shipit
+
+      - name: Get Release ID
+        id: get_release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            core.setOutput('upload_url', release.upload_url);
+
+      - name: Upload Windows Binary
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./release-assets/windows-latest-binary/gonkex-cli.exe
+          asset_name: gonkex-cli-windows-amd64.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux Binary
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./release-assets/ubuntu-latest-binary/gonkex-cli
+          asset_name: gonkex-cli-linux-amd64
+          asset_content_type: application/octet-stream
