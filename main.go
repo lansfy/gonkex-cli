@@ -33,6 +33,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/redis/go-redis/v9"
+	"gopkg.in/yaml.v2"
 )
 
 type config struct {
@@ -44,8 +45,9 @@ type config struct {
 	DbType           string
 	DbDsn            string
 
-	Mocks       string
-	MocksPrefix string
+	Mocks         string
+	MocksPrefix   string
+	MocksDefaults string
 
 	PreTestCmd  string
 	PreTestWait string
@@ -72,6 +74,26 @@ func createMocks(cfg *config) (*mocks.Mocks, error) {
 	err := m.Start()
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.MocksDefaults != "" {
+		var data []byte
+		data, err = os.ReadFile(cfg.MocksDefaults)
+		if err != nil {
+			return nil, err
+		}
+
+		var definition map[string]interface{}
+
+		err = yaml.UnmarshalStrict(data, &definition)
+		if err != nil {
+			return nil, err
+		}
+
+		err = m.LoadDefinitions(mocks.NewYamlLoader(nil), definition)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = m.RegisterEnvironmentVariables(cfg.MocksPrefix)
@@ -292,6 +314,7 @@ func getConfig() *config {
 	flag.StringVar(&cfg.DbType, "db-type", "", "Type of database/storage (available options: postgres, mysql, sqlite, aerospike, redis)")
 	flag.StringVar(&cfg.DbDsn, "db-dsn", "", "DSN for the fixtures database (WARNING: tables mentioned in fixtures will be truncated!)")
 	flag.StringVar(&cfg.Mocks, "mocks", "", "comma separated list of registered mocks")
+	flag.StringVar(&cfg.MocksDefaults, "mocks-defaults", "", "file with default mock values")
 	flag.StringVar(&cfg.MocksPrefix, "mocks-prefix", "GONKEX_MOCK_", "use specified prefix when register environment variables")
 
 	flag.StringVar(&cfg.PreTestCmd, "pre-test-cmd", "", "program to run before start the tests")

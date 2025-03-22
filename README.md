@@ -18,6 +18,7 @@ Usage:
 - `-env-file <...>` path to env-file
 - `-mocks <...>` comma separated list of registered mocks
 - `-mocks-prefix <...>` use specified prefix when register environment variables (default "GONKEX_MOCK_")
+- `-mocks-defaults <...>` mock values applied after mock creation
 - `-pre-test-cmd <...>` program to run before start the tests
 - `-pre-test-wait <...>` delay before start the tests
 - `-allure` generate an Allure-report
