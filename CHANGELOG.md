@@ -1,3 +1,15 @@
+# v0.0.3 (Sat Mar 22 2025)
+
+#### 🐛 Bug Fix
+
+- new: add -mocks-defaults parameters [#12](https://github.com/lansfy/gonkex-cli/pull/12) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.2 (Fri Mar 14 2025)
 
 #### 🐛 Bug Fix
