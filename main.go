@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lansfy/gonkex/checker"
 	"github.com/lansfy/gonkex/mocks"
 	"github.com/lansfy/gonkex/models"
 	"github.com/lansfy/gonkex/output"
@@ -42,8 +43,10 @@ type config struct {
 	EnvFile       string
 
 	FixturesLocation string
-	DbType           string
-	DbDsn            string
+	FixturesDefaults string
+
+	DbType string
+	DbDsn  string
 
 	Mocks         string
 	MocksPrefix   string
@@ -191,9 +194,23 @@ func runCli() error {
 	testsRunner.AddOutput(counter)
 
 	if cfg.Allure {
-		allureOutput := allure.NewOutput("Gonkex", "./allure-results")
+		var allureOutput *allure.Output
+		allureOutput, err = allure.NewOutput("Gonkex", "./allure-results")
+		if err != nil {
+			return err
+		}
 		testsRunner.AddOutput(allureOutput)
-		defer allureOutput.Finalize()
+		defer func() {
+			_ = allureOutput.Finalize()
+		}()
+	}
+
+	if cfg.FixturesDefaults != "" {
+		testsRunner.AddCheckers(&fixtureApplier{
+			storage:  fixtureStorage,
+			location: cfg.FixturesLocation,
+			defaults: cfg.FixturesDefaults,
+		})
 	}
 
 	cmd, err := runPreTestCommand(cfg)
@@ -307,11 +324,12 @@ func validateConfig(cfg *config) error {
 func getConfig() *config {
 	cfg := &config{}
 
-	flag.StringVar(&cfg.Host, "host", "", "Target system hostname")
-	flag.StringVar(&cfg.TestsLocation, "tests", "", "Path to tests file or directory")
-	flag.StringVar(&cfg.EnvFile, "env-file", "", "Path to env-file")
-	flag.StringVar(&cfg.FixturesLocation, "fixtures", "", "Path to fixtures directory")
-	flag.StringVar(&cfg.DbType, "db-type", "", "Type of database/storage (available options: postgres, mysql, sqlite, aerospike, redis)")
+	flag.StringVar(&cfg.Host, "host", "", "target system hostname")
+	flag.StringVar(&cfg.TestsLocation, "tests", "", "path to tests file or directory")
+	flag.StringVar(&cfg.EnvFile, "env-file", "", "path to env-file")
+	flag.StringVar(&cfg.FixturesLocation, "fixtures", "", "path to fixtures directory")
+	flag.StringVar(&cfg.FixturesDefaults, "fixtures-defaults", "", "apply fixture with specified name before processing of every test file")
+	flag.StringVar(&cfg.DbType, "db-type", "", "type of database/storage (available options: postgres, mysql, sqlite, aerospike, redis)")
 	flag.StringVar(&cfg.DbDsn, "db-dsn", "", "DSN for the fixtures database (WARNING: tables mentioned in fixtures will be truncated!)")
 	flag.StringVar(&cfg.Mocks, "mocks", "", "comma separated list of registered mocks")
 	flag.StringVar(&cfg.MocksDefaults, "mocks-defaults", "", "file with default mock values")
@@ -395,4 +413,23 @@ func (h *testCounter) print(c string) {
 	if h.showOutput {
 		_, _ = fmt.Printf("%s", c)
 	}
+}
+
+var _ checker.ExtendedCheckerInterface = (*fixtureApplier)(nil)
+
+type fixtureApplier struct {
+	storage  storage.StorageInterface
+	location string
+	defaults string
+}
+
+func (f *fixtureApplier) BeforeTest(m models.TestInterface) error {
+	if m.FirstTestInFile() {
+		return f.storage.LoadFixtures(f.location, []string{f.defaults})
+	}
+	return nil
+}
+
+func (f *fixtureApplier) Check(models.TestInterface, *models.Result) ([]error, error) {
+	return nil, nil
 }
