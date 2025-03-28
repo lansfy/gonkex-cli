@@ -1,3 +1,15 @@
+# v0.0.4 (Fri Mar 28 2025)
+
+#### 🐛 Bug Fix
+
+- new: add defaults for fixtures [#13](https://github.com/lansfy/gonkex-cli/pull/13) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.3 (Sat Mar 22 2025)
 
 #### 🐛 Bug Fix
