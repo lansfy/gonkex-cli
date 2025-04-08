@@ -1,5 +1,9 @@
 # Gonkex-cli: testing automation tool
 
+*NOTE*: You can find a description of the gonkex script syntax [here](https://github.com/lansfy/gonkex).
+
+*NOTE*: Pre-built versions of the utility are available in the [releases](https://github.com/lansfy/gonkex-cli/releases) section.
+
 ## Using the CLI
 
 To test a service located on a remote host, use gonkex as a console util.
