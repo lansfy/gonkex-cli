@@ -162,7 +162,9 @@ func runCli() error {
 		return err
 	}
 
-	defer m.Shutdown()
+	if m != nil {
+		defer m.Shutdown()
+	}
 
 	if cfg.EnvFile != "" {
 		err = runner.RegisterEnvironmentVariables(cfg.EnvFile, false)
