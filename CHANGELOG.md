@@ -1,3 +1,15 @@
+# v0.0.7 (Wed May 28 2025)
+
+#### 🐛 Bug Fix
+
+- new: fix panic when utility run without any specified mock [#16](https://github.com/lansfy/gonkex-cli/pull/16) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.6 (Wed Apr 09 2025)
 
 #### 🐛 Bug Fix
