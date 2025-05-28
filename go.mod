@@ -6,7 +6,7 @@ require (
 	github.com/aerospike/aerospike-client-go/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/lansfy/gonkex v0.2.0
+	github.com/lansfy/gonkex v0.4.2
 	github.com/lansfy/gonkex/storage/addons/aerospike v0.0.0-20250207050336-b9b27ca11237
 	github.com/lansfy/gonkex/storage/addons/redis v0.0.0-20250207050336-b9b27ca11237
 	github.com/lib/pq v1.10.9
@@ -25,6 +25,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.24.1 // indirect
@@ -32,6 +33,7 @@ require (
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
