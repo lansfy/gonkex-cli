@@ -1,3 +1,15 @@
+# v0.0.9 (Sun Jun 08 2025)
+
+#### 🐛 Bug Fix
+
+- new: bump gonkex version to v0.4.3 [#19](https://github.com/lansfy/gonkex-cli/pull/19) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.8 (Wed May 28 2025)
 
 #### 🐛 Bug Fix
