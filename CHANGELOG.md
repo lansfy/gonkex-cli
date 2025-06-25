@@ -1,3 +1,15 @@
+# v0.0.10 (Wed Jun 25 2025)
+
+#### 🐛 Bug Fix
+
+- new: allow to run pre-test programs from current folder [#18](https://github.com/lansfy/gonkex-cli/pull/18) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.9 (Sun Jun 08 2025)
 
 #### 🐛 Bug Fix
