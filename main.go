@@ -118,6 +118,11 @@ func runPreTestCommand(cfg *config) (*exec.Cmd, error) {
 	}
 
 	cmd := exec.Command(args[0], args[1:]...)
+	if errors.Is(cmd.Err, exec.ErrDot) {
+		// allow to run program from current dir
+		cmd.Err = nil
+	}
+
 	err = cmd.Start()
 	if err != nil {
 		return nil, err
