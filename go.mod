@@ -6,7 +6,7 @@ require (
 	github.com/aerospike/aerospike-client-go/v5 v5.11.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/lansfy/gonkex v0.4.3
+	github.com/lansfy/gonkex v0.4.7
 	github.com/lansfy/gonkex/storage/addons/aerospike v0.0.0-20250207050336-b9b27ca11237
 	github.com/lansfy/gonkex/storage/addons/redis v0.0.0-20250207050336-b9b27ca11237
 	github.com/lib/pq v1.10.9
