@@ -1,3 +1,15 @@
+# v0.0.11 (Tue Jul 08 2025)
+
+#### 🐛 Bug Fix
+
+- new: allows to specify port in mock string [#20](https://github.com/lansfy/gonkex-cli/pull/20) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.10 (Wed Jun 25 2025)
 
 #### 🐛 Bug Fix
