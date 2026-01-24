@@ -34,7 +34,6 @@ import (
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/redis/go-redis/v9"
-	"gopkg.in/yaml.v2"
 )
 
 type config struct {
@@ -86,14 +85,8 @@ func createMocks(cfg *config) (*mocks.Mocks, error) {
 			return nil, err
 		}
 
-		var definition map[string]interface{}
-
-		err = yaml.UnmarshalStrict(data, &definition)
-		if err != nil {
-			return nil, err
-		}
-
-		err = m.LoadDefinitions(mocks.NewYamlLoader(nil), definition)
+		loader := mocks.NewYamlLoader(nil)
+		err = loader.LoadStringDefinition(m, string(data))
 		if err != nil {
 			return nil, err
 		}
@@ -278,7 +271,7 @@ func createSqlStorage(dbType string, storageType sqldb.SQLType, cfg *config) (st
 		return nil, fmt.Errorf("can't open database: %w", err)
 	}
 
-	return sqldb.NewStorage(storageType, db, nil)
+	return sqldb.NewStorage(storageType, db, nil), nil
 }
 
 func createAerospikeStorage(cfg *config) (storage.StorageInterface, error) {
