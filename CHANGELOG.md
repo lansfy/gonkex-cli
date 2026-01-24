@@ -1,3 +1,15 @@
+# v0.0.12 (Sat Jan 24 2026)
+
+#### 🐛 Bug Fix
+
+- new: update gonkex library to 0.7.4 [#21](https://github.com/lansfy/gonkex-cli/pull/21) ([@lansfy](https://github.com/lansfy))
+
+#### Authors: 1
+
+- [@lansfy](https://github.com/lansfy)
+
+---
+
 # v0.0.11 (Tue Jul 08 2025)
 
 #### 🐛 Bug Fix
